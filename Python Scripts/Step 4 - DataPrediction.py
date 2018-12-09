@@ -7,6 +7,7 @@
 import numpy as np
 import pandas as pd
 import re
+import math
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import explained_variance_score
@@ -16,6 +17,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 import seaborn as sn
@@ -28,6 +30,26 @@ print("\nCount of Null Values per Column:\n",courses.isnull().sum())
 print("\nData Column Types:\n",courses.info())
 print("\nGreen Label Frequencies\n",courses['Green Type'].value_counts())
 print("\nFairway Label Frequencies\n",courses['Fairway Type'].value_counts())
+
+# Plot Null Value Distribution
+sn.heatmap(courses.isnull(), cbar=False)
+plt.title("Distribution of Null Values per Feature")
+plt.show()
+
+# Plot Bar Graph of Null Value Counts per Column
+sn.barplot(courses.isnull().sum().values, courses.isnull().sum().index, alpha=0.8)
+plt.title("Count of Null Values per Feature")
+plt.show()
+
+# Plot Bar Graph of the Count of Each Green Turf Type
+sn.barplot(courses['Green Type'].value_counts().values, courses['Green Type'].value_counts().index, alpha=0.8)
+plt.title("Count of Each Green Turf Class")
+plt.show()
+
+# Plot Bar Graph of the Count of Each Fairway Turf Type
+sn.barplot(courses['Fairway Type'].value_counts().values, courses['Fairway Type'].value_counts().index, alpha=0.8)
+plt.title("Count of Each Fairway Turf Class")
+plt.show()
 
 #**************************************************************
 
@@ -72,35 +94,21 @@ Rating = Rating.astype('float')
 
 courses = courses.drop(columns=['Slope', 'Rating'])
 courses = pd.concat([courses, Slope, Rating],axis=1)
-
+  
 courses = courses.dropna(how='any')
 
-# Define Green Type column and Fairway Type column as TARGET variables
-# and all other columns as our PREDICTIVE variables
-x = courses.iloc[:,courses.columns != "Green Type"]
-x = x.iloc[:,x.columns != "Fairway Type"]
-y1 = courses.iloc[:,courses.columns == "Green Type"]
-y2 = courses.iloc[:,courses.columns == "Fairway Type"]
-y = pd.concat([y1, y2],axis=1)
-
-# Drop Name, Zip Code, and Address columns because they are irrelevant details
-# Also drop the Country column because all courses are in the USA
-x = x.drop(columns=['Name', 'Country', 'Address', 'Zip Code', 'Designer','City'])
-
-# Transform Season Availibility field
-# Turn values from May to Nov into 7 Months
 Avail=[]
-for i in x['Season Availability']:
+for i in courses['Season Availability']:
     if "year" in i or "Year" in i:
-        i = '12'
+        i = int(12)
         Avail.append(i)
     else:
         i = re.sub('\(.*?\)', '', i)
         i = re.sub('[0-9]','',i)
         if i == 'Jan  to Dec ' or i == 'Jan  to Jan ' or i == 'Jan  to Jan  ':
-            i = '12'
+            i = int(12)
             Avail.append(i)
-        if 'Year' not in i:
+        else:
             i = i.replace('Jan','1')
             i = i.replace('Feb','2')
             i = i.replace('Mar','3')
@@ -121,38 +129,34 @@ for i in x['Season Availability']:
             endMon = endMon.replace('to','')
             endMon = endMon.replace(' ','')
             endMon = int(endMon)
-            seasonLength = (endMon - startMon)+1
-            if seasonLength == 0:
-                seasonLength = '12'
+            # If start month is before end month then use simple difference
+            if startMon < endMon:
+                seasonLength = (endMon - startMon)+1
                 Avail.append(seasonLength)
-            elif seasonLength == -1:
-                seasonLength = 11
-                Avail.append('%i' % seasonLength)
-            elif seasonLength == -2:
-                seasonLength = 10
-                Avail.append('%i' % seasonLength)
-            elif seasonLength == -4:
-                seasonLength = 8
-                Avail.append('%i' % seasonLength)
-            elif seasonLength == -5:
-                seasonLength = 7
-                Avail.append('%i' % seasonLength)
-            elif seasonLength == -6:
-                seasonLength = 6
-                Avail.append('%i' % seasonLength)
+            # If start month is not befoer end month (e.g. Feb to Jan) then
+            # use a different calculation
             else:
-                Avail.append('%i' % seasonLength)
-Availnum=[]
-for i in Avail:
-    i = int(i)
-    Availnum.append(i)
-del Availnum[-1]
-del Availnum[-1]
-del Availnum[-1]
-Availnum = pd.DataFrame(Availnum,columns=['Availability'])
-x = x.drop(columns=['Season Availability'])
-x = x.reset_index(drop=True)
-x = pd.concat([x, Availnum],axis=1)
+                seasonLength = ((12-startMon)+1)+(endMon)
+                Avail.append(seasonLength)
+
+Avail = pd.DataFrame(Avail,columns=['Availability'])
+courses = courses.drop(columns=['Season Availability'])
+courses = courses.reset_index(drop=True)
+courses = pd.concat([courses, Avail],axis=1)
+
+#******************************************************************
+
+# Define Green Type column and Fairway Type column as TARGET variables
+# and all other columns as our PREDICTIVE variables
+x = courses.iloc[:,courses.columns != "Green Type"]
+x = x.iloc[:,x.columns != "Fairway Type"]
+y1 = courses.iloc[:,courses.columns == "Green Type"]
+y2 = courses.iloc[:,courses.columns == "Fairway Type"]
+y = pd.concat([y1, y2],axis=1)
+
+# Drop Name, Zip Code, Address, and other columns because they are irrelevant details
+# Also drop the Country column because all courses are in the USA
+x = x.drop(columns=['Name', 'Country', 'Address', 'Zip Code', 'Designer','City'])
 
 #******************************************************************
 
@@ -160,6 +164,16 @@ x = pd.concat([x, Availnum],axis=1)
 # Split the dataframe by type
 nums = x.select_dtypes(exclude=object)
 objs = x.select_dtypes(include=object)
+
+# Plot distributions of remaining predictive variables
+nums.hist()
+plt.title('Histogram Distributions - Numerical Variables')
+plt.show()
+for i in list(objs.columns):
+    sn.barplot(courses[i].value_counts().values, courses[i].value_counts().index, alpha=0.8)
+    title = i + " - Histogram Distribution"
+    plt.title(title)
+    plt.show()
 
 # Format numerical columns
 nums = nums.astype({"Year Established": int, "Slope": int, "Rating": float, "Availability": int,
@@ -218,8 +232,9 @@ param_grid = {
     'max_features': ['auto', 'sqrt', 'log2'],
     'max_depth' : [4,5,6,7,8],
     'criterion' :['gini', 'entropy'],
-    'class_weight': ['balanced','balanced_subsample']
+    'class_weight': ['balanced','balanced_subsample'],
 }
+
 # Establish a GridSearchCV variable with the classifier and paramter grid
 Grid = GridSearchCV(estimator=forest, param_grid=param_grid, cv= 5)
 Grid2 = GridSearchCV(estimator=forest, param_grid=param_grid, cv= 5)
@@ -240,7 +255,6 @@ preds = pd.DataFrame(preds,columns=['Green Type','Fairway Type'])
 print(preds)
 
 # Encode target data and predictions in numerics so they can be plugged into scoring metrics
-from sklearn import preprocessing
 le = preprocessing.LabelEncoder()
 labels = pd.concat([y['Green Type'],y['Fairway Type']],axis=0)
 lefit = le.fit(labels)
