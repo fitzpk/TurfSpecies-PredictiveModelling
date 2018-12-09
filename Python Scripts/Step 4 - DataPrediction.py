@@ -41,16 +41,6 @@ sn.barplot(courses.isnull().sum().values, courses.isnull().sum().index, alpha=0.
 plt.title("Count of Null Values per Feature")
 plt.show()
 
-# Plot Bar Graph of the Count of Each Green Turf Type
-sn.barplot(courses['Green Type'].value_counts().values, courses['Green Type'].value_counts().index, alpha=0.8)
-plt.title("Count of Each Green Turf Class")
-plt.show()
-
-# Plot Bar Graph of the Count of Each Fairway Turf Type
-sn.barplot(courses['Fairway Type'].value_counts().values, courses['Fairway Type'].value_counts().index, alpha=0.8)
-plt.title("Count of Each Fairway Turf Class")
-plt.show()
-
 #**************************************************************
 
 # TRANSFORM SLOPE, RATING, AND AVAILABILITY FIELDS
@@ -143,6 +133,28 @@ Avail = pd.DataFrame(Avail,columns=['Availability'])
 courses = courses.drop(columns=['Season Availability'])
 courses = courses.reset_index(drop=True)
 courses = pd.concat([courses, Avail],axis=1)
+
+# Plot Bar Graph of the Count of Each Green Turf Type
+ax = sn.barplot(courses['Green Type'].value_counts().values, courses['Green Type'].value_counts().index, alpha=0.8)
+# Annotate Plot
+for p in ax.patches:
+    width = p.get_width()
+    plt.text(5+p.get_width(), p.get_y()+0.55*p.get_height(),
+             '        {:1.0f}'.format(width),
+             ha='center', va='center')
+plt.title("Count of Each Green Turf Class")
+plt.show()
+
+# Plot Bar Graph of the Count of Each Fairway Turf Type
+ax = sn.barplot(courses['Fairway Type'].value_counts().values, courses['Fairway Type'].value_counts().index, alpha=0.8)
+# Annotate Plot
+for p in ax.patches:
+    width = p.get_width()
+    plt.text(5+p.get_width(), p.get_y()+0.55*p.get_height(),
+             '        {:1.0f}'.format(width),
+             ha='center', va='center')
+plt.title("Count of Each Fairway Turf Class")
+plt.show()
 
 #******************************************************************
 
