@@ -7,7 +7,12 @@ From the Bermuda Grass greens found throughout Florida to the Fescue fairways of
 
 #### Data Sources
 Data for this project was extracted, via Web Scraping with the requests library, from the following websites:
-1) http://www.golfnationwide.com/US-Golf-Course-List-And-Directory.aspx
-2) https://www.usclimatedata.com/
+- http://www.golfnationwide.com/US-Golf-Course-List-And-Directory.aspx
+- https://www.usclimatedata.com/
 
+3 datasets were created during this process:
+- Golf Course Data (17154 Rows, 17 Features)
+- State Climate Data (51 Rows, 5 Features)
+- City Climate Data (5796 rows, 6 Features)
 
+These datasets were joined using left-join statements in Postgres. The final output was then brought into Python for transformations and model prediction. 
