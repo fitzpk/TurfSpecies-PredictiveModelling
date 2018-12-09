@@ -18,6 +18,6 @@ Data for this project was extracted, via Web Scraping with the requests library,
 These datasets were joined using left-join statements in Postgres. The final output was then brought into Python for transformations and model prediction. 
 
 ### Predictive Analysis
-Using Python, Scikit-Learn, and severl other libraries, a Multi-Output Random Forest Classifier was created and tuned using GridSearchCV.
+Using Python and its libraries (Scikit-Learn, Regex, Seaborn, Pandas, Numpy, etc.), a Multi-Output Random Forest Classifier was created and tuned using GridSearchCV.
 
 Full methodology and results can be viewed in a report at the following link: https://www.dropbox.com/s/k1yzcgyu5180fpx/Predictive%20Turf%20Management%20-%20Report.pdf?dl=0
