@@ -1,7 +1,8 @@
-# Web Scraping Script used to Extract Golf Course Data
-# for USA tracks
+#*******************************************
+# Web Scraping Script used to Extract Golf Course Data for USA tracks
 # December 2018
 # Kevin Fitzgerald
+#*******************************************
 
 import requests
 import numpy as np
