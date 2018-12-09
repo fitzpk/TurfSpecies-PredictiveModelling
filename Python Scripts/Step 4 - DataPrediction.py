@@ -1,7 +1,7 @@
 #*******************************************
 # Author: Kevin Fitzgerald
 # Project Purpose: Predicting USA golf course grass types
-# Date: November 2018
+# Date: December 2018
 #*******************************************
 
 import numpy as np
